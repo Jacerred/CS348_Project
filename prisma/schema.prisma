@@ -1,0 +1,43 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  // Optional: Prisma 7 often prefers an explicit output path
+  // output   = "../src/generated/prisma" 
+}
+
+model Category {
+  id      Int      @id @default(autoincrement())
+  name    String
+  sellers Seller[]
+}
+
+model Seller {
+  id              Int       @id @default(autoincrement())
+  username        String    @unique
+  isContGiveaway  Boolean
+  notes           String?
+  categoryId      Int?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  shows           Show[]
+}
+
+model Show {
+  id          Int       @id @default(autoincrement())
+  title       String
+  viewerCount Int
+  sellerId    Int
+  seller      Seller    @relation(fields: [sellerId], references: [id])
+  giveaways   Giveaway[]
+}
+
+model Giveaway {
+  id            Int      @id @default(autoincrement())
+  showId        Int
+  show          Show     @relation(fields: [showId], references: [id])
+  endTime       DateTime
+  isContinuous  Boolean
+  notes         String?
+}
