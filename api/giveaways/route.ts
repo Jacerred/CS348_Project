@@ -1,50 +1,25 @@
-import { prisma } from '@/lib/prisma';
+import db from '@/lib/db';
+import { NextResponse } from 'next/server';
 
-
-/*
- * Fetch all giveaways
- */
 export async function GET() {
-  const giveaways = await prisma.giveaway.findMany({
-    include: {
-      show: {
-        include: {
-          seller: true
-        }
-      }
-    }
-  });
+  try {
+    // Select the giveaway along with the show title and seller username
+    const giveaways = db.prepare(`
+      SELECT 
+        gs.id, 
+        gs.end_time, 
+        gs.is_continuous, 
+        s.title as show_title, 
+        sel.username as seller_name
+      FROM GiveawayState gs
+      JOIN Shows s ON gs.show_id = s.id
+      JOIN Sellers sel ON s.seller_id = sel.id
+      WHERE gs.end_time > datetime('now') -- Only show active ones
+      ORDER BY gs.end_time ASC
+    `).all();
 
-  return Response.json(giveaways);
-}
-
-/*
- * Create giveaway
- */
-export async function POST(req: Request) {
-  const data = await req.json();
-
-  const giveaway = await prisma.giveaway.create({
-    data: {
-      showId: data.showId,
-      endTime: new Date(data.endTime),
-      isContinuous: data.isContinuous
-    }
-  });
-
-  return Response.json(giveaway);
-}
-
-
-/*
- * Delete giveaway
- */
-export async function DELETE(req: Request) {
-  const { id } = await req.json();
-
-  await prisma.giveaway.delete({
-    where: { id }
-  });
-
-  return Response.json({ success: true });
+    return NextResponse.json(giveaways);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
+  }
 }
