@@ -46,11 +46,36 @@ AI Disclosure: sections of code copied from Gemini and ChatGPT
 
 ------
 
-Database Design:
+  Categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+  );
 
-Categories(ID, Name)
+  Sellers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    notes TEXT
+  );
 
-Shows(ID, Title, Viewer_Count)
+  Shows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    seller_id INTEGER,
+    viewer_count INTEGER,
+    notes TEXT,
+    date DATETIME,
+    url TEXT,
+    category_id INTEGER,
+    FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE SET NULL,
+    FOREIGN KEY (seller_id) REFERENCES Sellers(id) ON DELETE CASCADE
+  );
 
-Sellers(Username, Category_ID, isContGivvy, Notes)
-
+  GiveawayState (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    show_id INTEGER NOT NULL,
+    status TEXT DEFAULT 'IDLE', -- 'IDLE', 'RUNNING', 'PAUSED'
+    remaining_ms INTEGER DEFAULT 300000, -- 5 minutes in ms
+    end_time DATETIME, -- Only set when RUNNING
+    is_continuous BOOLEAN DEFAULT 0,
+    FOREIGN KEY (show_id) REFERENCES Shows(id) ON DELETE CASCADE
+  );
