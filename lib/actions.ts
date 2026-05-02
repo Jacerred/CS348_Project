@@ -106,11 +106,34 @@ export async function deleteShow(id: number) {
   return info;
 }
 
-export async function updateShow(id: number, data: { title?: string, category_id?: number, notes?: string }) {
-  const keys = Object.keys(data).map(k => `${k} = ?`).join(', ');
-  const values = Object.values(data);
+// export async function updateShow(id: number, data: { title?: string, category_id?: number, notes?: string }) {
+//   const keys = Object.keys(data).map(k => `${k} = ?`).join(', ');
+//   const values = Object.values(data);
   
-  db.prepare(`UPDATE Shows SET ${keys} WHERE id = ?`).run(...values, id);
+//   db.prepare(`UPDATE Shows SET ${keys} WHERE id = ?`).run(...values, id);
+//   revalidatePath('/');
+// }
+
+export async function updateShow(id: number, data: { title?: string, category_id?: number, notes?: string }) {
+  // 1. Define exactly what columns we trust
+  const allowedColumns = ['title', 'category_id', 'notes'];
+  
+  const updates: string[] = [];
+  const values: any[] = [];
+
+  // 2. Only add to our query if the key is explicitly in our allowlist
+  for (const [key, value] of Object.entries(data)) {
+    if (allowedColumns.includes(key) && value !== undefined) {
+      updates.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+
+  // 3. If they sent junk data with no valid keys, abort
+  if (updates.length === 0) return;
+
+  // 4. Safely execute
+  db.prepare(`UPDATE Shows SET ${updates.join(', ')} WHERE id = ?`).run(...values, id);
   revalidatePath('/');
 }
 
@@ -210,9 +233,29 @@ export async function deleteGiveaway(id: number) {
   revalidatePath('/');
 }
 
+// export async function updateGiveaway(id: number, data: any) {
+//   // Simple dynamic updater for status, end_time, etc.
+//   const keys = Object.keys(data).map(k => `${k} = ?`).join(', ');
+//   db.prepare(`UPDATE GiveawayState SET ${keys} WHERE id = ?`).run(...Object.values(data), id);
+//   revalidatePath('/');
+// }
+
 export async function updateGiveaway(id: number, data: any) {
-  // Simple dynamic updater for status, end_time, etc.
-  const keys = Object.keys(data).map(k => `${k} = ?`).join(', ');
-  db.prepare(`UPDATE GiveawayState SET ${keys} WHERE id = ?`).run(...Object.values(data), id);
+  // 1. Define trusted columns for GiveawayState
+  const allowedColumns = ['status', 'remaining_ms', 'end_time', 'is_continuous'];
+  
+  const updates: string[] = [];
+  const values: any[] = [];
+
+  for (const [key, value] of Object.entries(data)) {
+    if (allowedColumns.includes(key) && value !== undefined) {
+      updates.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+
+  if (updates.length === 0) return;
+
+  db.prepare(`UPDATE GiveawayState SET ${updates.join(', ')} WHERE id = ?`).run(...values, id);
   revalidatePath('/');
 }
