@@ -6,7 +6,7 @@ The framework used is nextjs with an SQLite backend (`dev.db` file), which is fa
 
 # Hosting
 
-The site is currently hosted on [Render](https://render.com/) at <https://cs348-project-xn7y.onrender.com/>.
+The site is currently hosted on [Render](https://render.com/); see project submission comment for link.
 
 **Note:**
 
