@@ -1,51 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Overview
 
-## Getting Started
+This project is a Whatnot Giveaway tracker. For those who don't know [Whatnot](https://www.whatnot.com/), it is a live auction website, and a main feature they have is show-hosted giveaways. However, you can only enter one giveaway at a time, so I created an application for you to manually track the giveaway timers such that you can optimize jumping around to different shows and try to win as much as possible.
 
-First, run the development server:
+The framework used is nextjs with an SQLite backend (.db file), which is facilitated by the `better-sqlite3` package.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Hosting
+
+The site is currently hosted on [Render](https://render.com/) at <https://cs348-project-xn7y.onrender.com/>.
+
+
+**Note:**
+
+Because I am using a free-tier subscription, my "free instance will spin down with inactivity, which can delay requests by 50 seconds or more." Thus, when you go to open the site, you may have to wait a minute for the site to reactivate before you can see or do anything. Another crutch of this is that the new instance after inactivity will restart the database from its stored Github state, which is empty. Thus, while the data should persist for your particular session, it will not persist across times of the site going inactive. 
+
+# AI Disclosure
+
+Gemini helped me significantly throughout the development of this project. It was primiarly used as a general project consultant and for UI design; otherwise, it was used in bursts for help on writing functions, debugging, etc. That being said, sections of code may be deliberately copied from its output, but that was not done without strict reviewal, verfication, and any necessary modification (as demanded in the project specifications).
+
+# Database Design
+See `lib/scripts/init-db.mjs`.
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
----
-
-Packages Used:
-- better-sqlite3
-
----
-
-AI Disclosure: sections of code copied from Gemini and ChatGPT
-
-------
-
   Categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL
@@ -79,3 +53,35 @@ AI Disclosure: sections of code copied from Gemini and ChatGPT
     is_continuous BOOLEAN DEFAULT 0,
     FOREIGN KEY (show_id) REFERENCES Shows(id) ON DELETE CASCADE
   );
+  -- INDEXES
+  -- 1. Index foreign keys to speed up JOINs
+  INDEX idx_gs_show_id ON GiveawayState(show_id);
+  INDEX idx_shows_seller_id ON Shows(seller_id);
+  INDEX idx_shows_category_id ON Shows(category_id);
+
+  -- 2. Index columns used in WHERE range filters
+  INDEX idx_shows_viewer_count ON Shows(viewer_count);
+```
+Note that many fields may not be in use and reflect a more ambitious application to be developed at a later time. Notably, the current application does not save the current timer countdowns to the database, so they will be lost on refresh.
+
+# Next.js Boilerplate
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
